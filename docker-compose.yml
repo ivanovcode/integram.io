@@ -1,0 +1,66 @@
+version: '3'
+services:
+    selenoid: 
+        network_mode: bridge
+        image: aerokube/selenoid:latest-release
+        container_name: "selenoid"
+        volumes:
+          - ./config/browsers.json:/etc/selenoid/browsers.json
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ./selenoid:/opt/selenoid/video
+          - ./logs/selenoid:/opt/selenoid/logs
+        environment:
+          - TZ=Europe/Moscow
+          - OVERRIDE_VIDEO_OUTPUT_DIR=$PWD/selenoid
+        command: ["-conf", "/etc/selenoid/browsers.json", "-video-output-dir", "/opt/selenoid/video", "-log-output-dir", "/opt/selenoid/logs"]
+        ports:
+          - "5555:4444"
+    selenoid-ui:
+        image: aerokube/selenoid-ui
+        container_name: "selenoid-ui"  
+        network_mode: bridge      
+        links:
+          - selenoid
+        ports:
+          - "7777:8080" 
+        command: ["--selenoid-uri","http://selenoid:4444"]   
+    php:     
+        build: ./docker/php
+        container_name: php 
+        network_mode: bridge
+        volumes:
+          - ./src:/var/www/integram.io
+          - "/var/run/docker.sock:/var/run/docker.sock"       
+        links:
+          - mysql  
+          - selenoid   
+        environment:
+          - SELENOID_PORT_4444_TCP_ADDR=selenoid
+          - SELENOID_PORT_4444_TCP_PORT=4444
+    nginx:
+        image: nginx:latest
+        container_name: nginx
+        network_mode: bridge
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./config/integram.io.conf:/etc/nginx/conf.d/integram.io.conf
+            - ./src:/var/www/integram.io
+            - ./logs/nginx:/var/log/nginx
+        links:
+            - php           
+    mysql:
+        image: mysql
+        container_name: mysql
+        network_mode: bridge
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./config/my.cnf:/etc/mysql/conf.d/my.cnf
+            - ./logs/mysql:/var/log/mysql
+            - ./mysql:/var/lib/mysql
+            - ./data:/docker-entrypoint-initdb.d
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: sait
