@@ -1,6 +1,8 @@
 FROM php:7.4-fpm
 
 RUN apt-get update && apt-get install -y \
+        supervisor \
+        cron \
         curl \
         wget \
         git \
@@ -18,10 +20,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-#ADD ./confg/php/php.ini /usr/local/etc/php/conf.d/40-custom.ini
+# ADD ./config/cron.root /var/spool/cron/crontabs/root
+# RUN chown -R root:crontab /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
+# RUN touch /var/log/cron.log
 
-WORKDIR /var/www/integram.io
+WORKDIR /var/www/mams.me
 
-RUN cd /var/www/integram.io/ \ composer install --prefer-source --no-interaction
-
-CMD ["php-fpm"]
+CMD ["sh", "./init.sh"]

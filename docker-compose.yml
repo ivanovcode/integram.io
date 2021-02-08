@@ -14,7 +14,7 @@ services:
           - OVERRIDE_VIDEO_OUTPUT_DIR=$PWD/selenoid
         command: ["-conf", "/etc/selenoid/browsers.json", "-video-output-dir", "/opt/selenoid/video", "-log-output-dir", "/opt/selenoid/logs"]
         expose:
-          - "4444"
+          - "4444" 
     selenoid-ui:
         image: aerokube/selenoid-ui
         container_name: "selenoid-ui"  
@@ -29,14 +29,21 @@ services:
         container_name: php 
         network_mode: bridge
         volumes:
-          - ./src:/var/www/integram.io
-          - "/var/run/docker.sock:/var/run/docker.sock"       
+          - ./config/supervisord.conf:/etc/supervisor/supervisord.conf
+          - ./config/php.ini:/usr/local/etc/php/conf.d/40-custom.ini
+          - ./src:/var/www/mams.me
+          - "/var/run/docker.sock:/var/run/docker.sock"   
+          - ./logs/supervisor:/var/log/supervisor
+          - ./config/cron.root:/var/spool/cron/crontabs/root
         links:
           - mysql  
           - selenoid   
         environment:
+          - TZ=Europe/Moscow          
           - SELENOID_PORT_4444_TCP_ADDR=selenoid
           - SELENOID_PORT_4444_TCP_PORT=4444
+          - MYSQL_PORT_3306_TCP_ADDR=mysql
+          - MYSQL_PORT_3306_TCP_PORT=3306
     nginx:
         image: nginx:latest
         container_name: nginx
@@ -45,8 +52,10 @@ services:
             - "80:80"
             - "443:443"
         volumes:
-            - ./config/integram.io.conf:/etc/nginx/conf.d/integram.io.conf
-            - ./src:/var/www/integram.io
+            - ./config/nginx.conf:/etc/nginx/conf.d/mams.me.conf
+            - ./config/mams.me.crt:/etc/nginx/ssl/mams.me.crt
+            - ./config/mams.me.key:/etc/nginx/ssl/mams.me.key
+            - ./src:/var/www/mams.me
             - ./logs/nginx:/var/log/nginx
         links:
             - php           
