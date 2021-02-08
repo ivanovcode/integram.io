@@ -20,9 +20,9 @@ RUN apt-get update && apt-get install -y \
 
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# ADD ./config/cron.root /var/spool/cron/crontabs/root
-# RUN chown -R root:crontab /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
-# RUN touch /var/log/cron.log
+ADD ./config/cron.root /var/spool/cron/crontabs/root
+RUN chown -R root:crontab /var/spool/cron/crontabs/root && chmod 600 /var/spool/cron/crontabs/root
+RUN touch /var/log/cron.log
 
 WORKDIR /var/www/mams.me
 

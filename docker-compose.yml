@@ -25,7 +25,9 @@ services:
           - "8888:8080" 
         command: ["--selenoid-uri","http://selenoid:4444"]   
     php:     
-        build: ./docker/php
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
         container_name: php 
         network_mode: bridge
         volumes:
@@ -34,7 +36,6 @@ services:
           - ./src:/var/www/mams.me
           - "/var/run/docker.sock:/var/run/docker.sock"   
           - ./logs/supervisor:/var/log/supervisor
-          - ./config/cron.root:/var/spool/cron/crontabs/root
         links:
           - mysql  
           - selenoid   

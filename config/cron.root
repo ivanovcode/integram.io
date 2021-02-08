@@ -1,2 +1,1 @@
-* * * * * /usr/local/bin/php //var/www/mams.me/extraction.posts.php >> /dev/null 2>&1
-# END
+* * * * * /usr/local/bin/php /var/www/mams.me/extraction.posts.php >> /var/log/cron.log 2>&1
